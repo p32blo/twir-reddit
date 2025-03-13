@@ -1,5 +1,5 @@
 # How to Use
 
 ```bash
-test
+./main.sh <url>
 ```

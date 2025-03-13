@@ -1,1 +1,5 @@
 output/
+.vscode/
+.direnv/
+
+__pycache__/

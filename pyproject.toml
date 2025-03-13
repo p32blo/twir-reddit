@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["André Oliveira <andre.oliveira@q-better.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -12,7 +13,7 @@ feedparser = "^6.0.11"
 beautifulsoup4 = "^4.12.3"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.2.1"
+ruff = "=0.5.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e 
+#set -e 
 #export PIPENV_VERBOSITY=-1
 
 poetry run python src/url.py $1 > url.txt

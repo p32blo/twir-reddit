@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 
 
 def extract_urls(content):
-
     soup = BeautifulSoup(content, 'html.parser')
 
     for title in soup.find_all('h3'):
