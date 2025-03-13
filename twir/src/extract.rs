@@ -26,14 +26,14 @@ fn extract_urls(document_content: &str) -> Vec<String> {
             }
         }
     }
-    return result;
+    result
 }
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let filename = args.get(1).expect("Error getting the 1st arg");
-    let file = std::fs::read_to_string(&filename);
+    let file = std::fs::read_to_string(filename);
     for line in extract_urls(&file.unwrap()) {
         println!("{}", line);
     }

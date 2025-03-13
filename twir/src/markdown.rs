@@ -3,7 +3,6 @@ use scraper::{Html, Selector};
 use serde_json::Value;
 use std::fs::File;
 use std::io::{self, BufRead};
-use ureq;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -38,7 +37,7 @@ fn extract_urls(html: &str) -> Vec<String> {
             result.push(attr.to_string());
         }
     }
-    return result;
+    result
 }
 
 impl From<&Value> for RedditPost {
@@ -72,11 +71,11 @@ impl From<&Value> for RedditPost {
 }
 
 fn get_urls(filename: &str) -> Vec<String> {
-    let file = File::open(&filename).expect("opening file");
+    let file = File::open(filename).expect("opening file");
     let lines = io::BufReader::new(file).lines();
     lines
         .map_while(Result::ok)
-        .map(|x| x.trim().trim_end_matches("/").to_string()) // cleanup
+        .map(|x| x.trim().trim_end_matches('/').to_string()) // cleanup
         .collect()
 }
 
@@ -109,7 +108,7 @@ fn process(map: &mut HashMap<String, RedditPost>, posts: &[RedditPost], urls: &H
     for post in posts {
         let links: Vec<String> = std::iter::once(&post.url)
             .chain(&post.links)
-            .map(|x| x.trim_end_matches("/").to_string())
+            .map(|x| x.trim_end_matches('/').to_string())
             .collect();
 
         for link in &links {
@@ -130,8 +129,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let urls: HashSet<String> = HashSet::from_iter(
         ordered_urls
             .iter()
-            .cloned()
-            .filter(|x| !x.starts_with("##")),
+            .filter(|&x| !x.starts_with("##"))
+            .cloned(),
     );
 
     let mut map = HashMap::new();
@@ -184,7 +183,7 @@ fn print_result(urls: &[String], map: &HashMap<String, RedditPost>) {
             if let Some(url) = section.take() {
                 println!("{}", url);
             }
-            print_post(&post);
+            print_post(post);
         }
     }
 }

@@ -37,9 +37,11 @@
       devShells.default = pkgs.mkShell {
         inputsFrom = [self.packages.${system}.myapp pkgs.poetry];
         packages = with pkgs; [
+          # rust
           rustc
           cargo
           bacon
+          clippy
         ];
       };
 
