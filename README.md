@@ -1,5 +1,5 @@
 # How to Use
 
 ```bash
-./main.sh <url>
+just all <url>
 ```

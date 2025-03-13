@@ -43,8 +43,10 @@
           bacon
           clippy
 
-          # Config
+          # Tools
           just
+          curl
+
         ];
       };
 

@@ -2,6 +2,7 @@ target/
 output/
 .vscode/
 .direnv/
+data/
 
 __pycache__/
 

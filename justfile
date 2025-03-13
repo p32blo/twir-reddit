@@ -1,10 +1,14 @@
 all url: (markdown url)
 
 html url: 
-  wget --quiet {{url}} --output-document twir.html
+  mkdir -p data
+  curl --progress-bar {{url}} --output data/twir.html
 
 extract url: (html url)
-  cd twir && cargo run --quiet --bin extract --release -- ../twir.html > ../url.txt
+  cargo run  --bin extract --release -- data/twir.html > data/url.txt
 
 markdown url: (extract url)
-  cd twir && cargo run --quiet --bin markdown --release  -- ../url.txt
+  cargo run  --bin markdown --release  -- data/url.txt
+
+clean:
+  rm -rf data/
