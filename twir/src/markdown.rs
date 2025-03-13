@@ -7,10 +7,9 @@ use ureq;
 
 use std::collections::HashSet;
 use std::error::Error;
-use ureq::http::HeaderValue;
 
 struct RedditResponse {
-    after: String,
+    after: Option<String>,
     posts: Vec<RedditPost>,
 }
 
@@ -77,22 +76,22 @@ fn get_urls(filename: &str) -> Vec<String> {
         .collect()
 }
 
-fn call(after: Option<&str>) -> Result<RedditResponse, ureq::Error> {
+fn call(after: &Option<String>) -> Result<RedditResponse, ureq::Error> {
     dbg!(&after);
     let url = "http://www.reddit.com/r/rust/new.json";
 
-    let mut req = ureq::get(url).header("sort", "new");
+    let mut req = ureq::get(url)
+        .header("User-Agent", "Rust TWIR/0.0.1")
+        .query("sort", "new");
 
     if let Some(param) = after {
-        let headers = req.headers_mut().unwrap();
-        headers.insert("after", HeaderValue::from_str(param).unwrap());
-        headers.insert("User-Agent", HeaderValue::from_static("Rust TWIR/0.0.1"));
+        req = req.query("after", param)
     }
 
-    let mut resp = ureq::get(url).call().expect("error getting response");
+    let mut resp = req.call().expect("error getting response");
     let v: Value = resp.body_mut().read_json()?;
 
-    let after = v["data"]["after"].as_str().unwrap_or_default().to_string();
+    let after = v["data"]["after"].as_str().map(|x| x.to_string());
 
     let mut posts: Vec<RedditPost> = vec![];
     if let Some(children) = v["data"]["children"].as_array() {
@@ -100,6 +99,24 @@ fn call(after: Option<&str>) -> Result<RedditResponse, ureq::Error> {
     }
 
     Ok(RedditResponse { posts, after })
+}
+
+fn process(posts: &[RedditPost], urls: &HashSet<String>) {
+    for post in posts {
+        let orig_post = post.clone();
+
+        let links: Vec<String> = std::iter::once(&post.url)
+            .chain(&post.links)
+            .map(|x| x.trim_end_matches("/").to_string())
+            .collect();
+
+        for link in &links {
+            //dbg!(link);
+            if urls.contains(link) {
+                dbg!(&orig_post.title);
+            }
+        }
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -112,28 +129,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             .into_iter()
             .filter(|x| !x.starts_with("##")),
     );
-    let res = call(None)?;
 
-    for post in res.posts {
-        let orig_post = post.clone();
+    let mut token: Option<String> = None;
 
-        let links: Vec<String> = std::iter::once(post.url)
-            .chain(post.links.into_iter())
-            .map(|x| x.trim_end_matches("/").to_string())
-            .collect();
-
-        for link in &links {
-            //dbg!(link);
-            if urls.contains(link) {
-                dbg!(&orig_post.title);
-            }
-        }
-    }
-    let mut token = res.after;
     for _ in 0..5 {
-        let resp = call(Some(&token))?;
+        let RedditResponse { posts, after } = call(&token)?;
+        process(&posts, &urls);
 
-        token = resp.after;
+        token = after;
     }
     Ok(())
 }
