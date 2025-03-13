@@ -16,5 +16,5 @@ def extract_urls(content):
 if __name__ == '__main__':
     filename = sys.argv[1]
     with open(filename) as f:
-        for url in extract_urls(filename):
+        for url in extract_urls(f.read()):
             print(url)

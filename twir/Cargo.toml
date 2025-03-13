@@ -1,0 +1,17 @@
+[package]
+name = "twir"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "extract"
+path = "src/extract.rs"
+
+[[bin]]
+name = "markdown"
+path = "src/markdown.rs"
+
+
+[dependencies]
+scraper = "0.22.0"
+ureq = "3.0.4"

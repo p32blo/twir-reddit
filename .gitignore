@@ -1,5 +1,10 @@
+target/
 output/
 .vscode/
 .direnv/
 
 __pycache__/
+
+*.txt
+twir/*.md
+
