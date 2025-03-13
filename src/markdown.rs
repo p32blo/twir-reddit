@@ -177,7 +177,7 @@ fn print_header() {
     println!(
         r#"
 # TWIR @ Reddit
-    
+
 Hey everyone, here you can follow the r/rust comment threads of articles featured in TWIR (This Week in Rust).
 I've always found it helpful to search for additional insights in the comment section here
 and I hope you can find it helpful too.
@@ -191,9 +191,11 @@ fn print_footer() {
         r#"
 --
 
-A little bit of a shameless plug: I'm looking for a Rust job opportunity! 
-If you know anyone interested in a Remote Developer in Europe you can contact me at p32blo@gmail.com. 
-Thank you! 
+If you are curious how this comment is generated you can now check https://github.com/p32blo/twir-reddit
+
+Also, I'm looking for a Rust job opportunity!
+If you know anyone interested in a Remote Developer in Europe, you can contact me at p32blo@gmail.com.
+Thank you!
 "#,
     );
 }
