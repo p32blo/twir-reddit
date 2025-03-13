@@ -1,6 +1,7 @@
+import sys
+
 import requests
 from bs4 import BeautifulSoup
-import sys
 
 # exclude = [
 #     "https://this-week-in-rust.org/",
@@ -23,10 +24,14 @@ import sys
 
 url = sys.argv[1]
 reqs = requests.get(url)
+# with open('file.html', "wb") as f:
+#    f.write(reqs.content)
 soup = BeautifulSoup(reqs.text, 'html.parser')
 
 urls = []
-for link in soup.find_all('a'):
-    url = link.get('href')
-    #if not url in exclude:
-    print(url)
+for title in soup.find_all('h3'):
+    print(f'##{title.text}')
+    for link in title.find_next('ul').find_all('a'):
+        url = link.get('href')
+        # if not url in exclude:
+        print(url)

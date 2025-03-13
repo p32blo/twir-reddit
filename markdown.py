@@ -1,11 +1,10 @@
-import requests
-from bs4 import BeautifulSoup
 import html
 import sys
-from pprint import pprint
-import sys
-import time
 from dataclasses import dataclass
+from pprint import pprint
+
+import requests
+from bs4 import BeautifulSoup
 
 filename = sys.argv[1]
 URLS = []
@@ -15,16 +14,25 @@ with open(filename) as f:
 
 pprint(len(URLS))
 
-print("""
+
+def urls_iterator(urls):
+    for url in urls:
+        if not url.startswith('##'):
+            yield url
+
+
+print(
+    """
 # TWIR @ Reddit
 
 Hey everyone, here you can follow the r/rust comment threads of articles featured in TWIR (This Week in Rust). 
 I've always found it helpful to search for additional insights in the comment section here and I hope you can find it helpful too. 
 Enjoy !
-""")
+"""
+)
+
 
 def extract_post(post):
-
     data = post['data']
 
     title = data['title']
@@ -58,19 +66,17 @@ def extract_post(post):
 
 
 def call(after=None):
+    url = 'http://www.reddit.com/r/rust/new.json'
 
-    url = "http://www.reddit.com/r/rust/new.json"
-
-    params = {"sort": "new"}
+    params = {'sort': 'new'}
 
     if after is not None:
         params['after'] = after
 
-    response = requests.get(url,
-                            headers={"User-Agent": "Rust TWIR/0.0.1"},
-                            params=params)
+    response = requests.get(url, headers={'User-Agent': 'Rust TWIR/0.0.1'}, params=params)
     # time.sleep(5)
     return response
+
 
 @dataclass
 class Result:
@@ -81,25 +87,26 @@ class Result:
     downs: int
     score: int
 
+
 RESULTS_MAP = {}
 
 after = None
 
 for _ in range(15):
     response = call(after=after)
-    #print(response.text)
+    # print(response.text)
     result = response.json()
     after = result['data']['after']
 
     for post in result['data']['children']:
         post_content = extract_post(post)
-          
+
         links = post_content['links'] + [post_content['url']]
         links = (l.rstrip('/') for l in links)
-        
-        #print(f'{[l.rstrip("/") for l in links]=}')
+
+        # print(f'{[l.rstrip("/") for l in links]=}')
         for link in links:
-            for url in URLS:
+            for url in urls_iterator(URLS):
                 if link == url:
                     RESULTS_MAP[url] = Result(
                         title=post_content['title'],
@@ -110,14 +117,31 @@ for _ in range(15):
                         score=post_content['score'],
                     )
 
-        #else:
+        # else:
         #   print('.', end='')
         #    sys.stdout.flush()
-         #   print(f"XXXXXXXX - {post_content['title']} - http://www.reddit.com{post_content['permalink']}")
-            #pprint(URLS)
-#print()
+        #   print(f"XXXXXXXX - {post_content['title']} - http://www.reddit.com{post_content['permalink']}")
+        # pprint(URLS)
+# print()
 
+
+def print_buffer(buffer):
+    if len(buffer) > 1:
+        print()
+        for line in buffer:
+            print(line)
+
+
+BUFFER = []
 for url in URLS:
-    if url in RESULTS_MAP:
+    if url.startswith('##'):
+        print_buffer(BUFFER)
+        BUFFER = [url]
+
+    elif url in RESULTS_MAP:
         result = RESULTS_MAP[url]
-        print(f"- [{result.title}]({result.url}) `↑{result.score} | {result.num_comments} comment{'s' if result.num_comments > 1 else ''}`")
+        BUFFER.append(
+            f"- [{result.title}]({result.url}) `↑{result.score} | {result.num_comments} comment{'s' if result.num_comments > 1 else ''}`"
+        )
+
+print_buffer(BUFFER)
