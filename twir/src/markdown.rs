@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use ureq;
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -19,8 +20,8 @@ struct RedditPost {
     url: String,
     permalink: String,
     num_comments: i64,
-    ups: i64,
-    downs: i64,
+    _ups: i64,
+    _downs: i64,
     score: i64,
     links: Vec<String>,
 }
@@ -57,10 +58,13 @@ impl From<&Value> for RedditPost {
         RedditPost {
             title: data["title"].as_str().unwrap_or("").to_string(),
             url: data["url"].as_str().unwrap_or("").to_string(),
-            permalink: data["permalink"].as_str().unwrap_or("").to_string(),
+            permalink: format!(
+                "http://www.reddit.com{permalink}",
+                permalink = data["permalink"].as_str().unwrap_or_default(),
+            ),
             num_comments: data["num_comments"].as_i64().unwrap_or(0),
-            ups: data["ups"].as_i64().unwrap_or(0),
-            downs: data["downs"].as_i64().unwrap_or(0),
+            _ups: data["ups"].as_i64().unwrap_or(0),
+            _downs: data["downs"].as_i64().unwrap_or(0),
             score: data["score"].as_i64().unwrap_or(0),
             links,
         }
@@ -101,10 +105,8 @@ fn call(after: &Option<String>) -> Result<RedditResponse, ureq::Error> {
     Ok(RedditResponse { posts, after })
 }
 
-fn process(posts: &[RedditPost], urls: &HashSet<String>) {
+fn process(map: &mut HashMap<String, RedditPost>, posts: &[RedditPost], urls: &HashSet<String>) {
     for post in posts {
-        let orig_post = post.clone();
-
         let links: Vec<String> = std::iter::once(&post.url)
             .chain(&post.links)
             .map(|x| x.trim_end_matches("/").to_string())
@@ -112,8 +114,8 @@ fn process(posts: &[RedditPost], urls: &HashSet<String>) {
 
         for link in &links {
             //dbg!(link);
-            if urls.contains(link) {
-                dbg!(&orig_post.title);
+            if let Some(url) = urls.get(link) {
+                map.insert(url.to_string(), post.clone());
             }
         }
     }
@@ -124,19 +126,76 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let filename = args.get(1).expect("Error getting the 1st arg");
 
+    let ordered_urls = get_urls(filename);
     let urls: HashSet<String> = HashSet::from_iter(
-        get_urls(filename)
-            .into_iter()
+        ordered_urls
+            .iter()
+            .cloned()
             .filter(|x| !x.starts_with("##")),
     );
 
+    let mut map = HashMap::new();
+
     let mut token: Option<String> = None;
 
-    for _ in 0..5 {
+    for _ in 0..30 {
         let RedditResponse { posts, after } = call(&token)?;
-        process(&posts, &urls);
+        process(&mut map, &posts, &urls);
 
         token = after;
     }
+    print_header();
+    print_result(&ordered_urls, &map);
+    print_footer();
     Ok(())
+}
+
+fn print_header() {
+    println!(
+        r#"
+# TWIR @ Reddit
+    
+Hey everyone, here you can follow the r/rust comment threads of articles featured in TWIR (This Week in Rust).
+I've always found it helpful to search for additional insights in the comment section here
+and I hope you can find it helpful too.
+Enjoy !
+"#,
+    );
+}
+
+fn print_footer() {
+    println!(
+        r#"
+--
+
+A little bit of a shameless plug: I'm looking for a Rust job opportunity! 
+If you know anyone interested in a Remote Developer in Europe you can contact me at p32blo@gmail.com. 
+Thank you! 
+"#,
+    );
+}
+
+fn print_result(urls: &[String], map: &HashMap<String, RedditPost>) {
+    let mut section = None;
+    for url in urls {
+        if url.starts_with("##") {
+            section = Some(url);
+        } else if let Some(post) = map.get(url) {
+            if let Some(url) = section.take() {
+                println!("{}", url);
+            }
+            print_post(&post);
+        }
+    }
+}
+
+fn print_post(post: &RedditPost) {
+    println!(
+        "- [{title}]({url}) `↑{score} | {num_comments} comment{plural}`",
+        title = post.title,
+        url = post.permalink,
+        score = post.score,
+        num_comments = post.num_comments,
+        plural = if post.num_comments > 1 { "s" } else { "" },
+    );
 }
