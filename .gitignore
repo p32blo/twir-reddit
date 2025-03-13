@@ -6,5 +6,6 @@ output/
 __pycache__/
 
 *.txt
+*.html
 twir/*.md
 

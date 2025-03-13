@@ -2,7 +2,7 @@ use html_escape::decode_html_entities;
 use scraper::{Html, Selector};
 use serde_json::Value;
 use std::fs::File;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Write};
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -80,7 +80,6 @@ fn get_urls(filename: &str) -> Vec<String> {
 }
 
 fn call(after: &Option<String>) -> Result<RedditResponse, ureq::Error> {
-    dbg!(&after);
     let url = "http://www.reddit.com/r/rust/new.json";
 
     let mut req = ureq::get(url)
@@ -137,15 +136,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut token: Option<String> = None;
 
-    for _ in 0..30 {
+    for _ in 0..15 {
         let RedditResponse { posts, after } = call(&token)?;
         process(&mut map, &posts, &urls);
+        print!(" ");
+        io::stdout().flush().expect("Unable to flush stdout");
 
         token = after;
     }
+
     print_header();
     print_result(&ordered_urls, &map);
     print_footer();
+
     Ok(())
 }
 

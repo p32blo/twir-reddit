@@ -42,6 +42,9 @@
           cargo
           bacon
           clippy
+
+          # Config
+          just
         ];
       };
 
