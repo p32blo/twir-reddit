@@ -1,62 +1,28 @@
 {
-  description = "Application packaged using poetry2nix";
-
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    naersk.url = "github:nix-community/naersk/master";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
     self,
     nixpkgs,
-    flake-utils,
-    poetry2nix,
+    utils,
+    naersk,
   }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      # see https://github.com/nix-community/poetry2nix/tree/master#api for more functions and examples.
-      pkgs = nixpkgs.legacyPackages.${system};
-      inherit (poetry2nix.lib.mkPoetry2Nix {inherit pkgs;}) mkPoetryApplication;
-    in {
-      packages = {
-        myapp = mkPoetryApplication {
-          projectDir = self;
-          checkGroups = []; # avoiding building dev dependencies (ruff)
-        };
-        default = self.packages.${system}.myapp;
-      };
-
-      # Shell for app dependencies.
-      #
-      #     nix develop
-      #
-      # Use this shell for developing your app.
-      devShells.default = pkgs.mkShell {
-        inputsFrom = [self.packages.${system}.myapp pkgs.poetry];
-        packages = with pkgs; [
-          # rust
-          rustc
-          cargo
-          bacon
-          clippy
-
-          # Tools
-          just
-          curl
-
-        ];
-      };
-
-      # Shell for poetry.
-      #
-      #     nix develop .#poetry
-      #
-      # Use this shell for changes to pyproject.toml and poetry.lock.
-      devShells.poetry = pkgs.mkShell {
-        packages = with pkgs; [poetry];
-      };
-    });
+    utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {inherit system;};
+        naersk-lib = pkgs.callPackage naersk {};
+      in {
+        defaultPackage = naersk-lib.buildPackage ./.;
+        devShell = with pkgs;
+          mkShell {
+            buildInputs = [cargo rustc bacon rustfmt pre-commit rustPackages.clippy];
+            RUST_SRC_PATH = rustPlatform.rustLibSrc;
+            packages = [just curl];
+          };
+      }
+    );
 }
