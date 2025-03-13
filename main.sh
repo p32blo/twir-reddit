@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #set -e 
 #export PIPENV_VERBOSITY=-1
