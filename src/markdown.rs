@@ -55,16 +55,16 @@ impl From<&Value> for RedditPost {
         }
 
         RedditPost {
-            title: data["title"].as_str().unwrap_or("").to_string(),
-            url: data["url"].as_str().unwrap_or("").to_string(),
+            title: data["title"].as_str().unwrap_or_default().to_string(),
+            url: data["url"].as_str().unwrap_or_default().to_string(),
             permalink: format!(
                 "http://www.reddit.com{permalink}",
                 permalink = data["permalink"].as_str().unwrap_or_default(),
             ),
-            num_comments: data["num_comments"].as_i64().unwrap_or(0),
-            _ups: data["ups"].as_i64().unwrap_or(0),
-            _downs: data["downs"].as_i64().unwrap_or(0),
-            score: data["score"].as_i64().unwrap_or(0),
+            num_comments: data["num_comments"].as_i64().unwrap_or_default(),
+            _ups: data["ups"].as_i64().unwrap_or_default(),
+            _downs: data["downs"].as_i64().unwrap_or_default(),
+            score: data["score"].as_i64().unwrap_or_default(),
             links,
         }
     }
@@ -103,20 +103,31 @@ fn call(after: &Option<String>) -> Result<RedditResponse, ureq::Error> {
     Ok(RedditResponse { posts, after })
 }
 
-fn process(map: &mut HashMap<String, RedditPost>, posts: &[RedditPost], urls: &HashSet<String>) {
-    for post in posts {
-        let links: Vec<String> = std::iter::once(&post.url)
-            .chain(&post.links)
-            .map(|x| x.trim_end_matches('/').to_string())
-            .collect();
+fn process(
+    map: &mut HashMap<String, RedditPost>,
+    posts: &[RedditPost],
+    urls: &HashSet<String>,
+) -> Option<String> {
+    // return if a TWIR Post was found
+    let mut res = None;
 
-        for link in &links {
-            //dbg!(link);
+    for post in posts {
+        if post.url.contains("this-week-in-rust.org") {
+            res = Some(post.url.to_string());
+        }
+
+        let links = std::iter::once(&post.url)
+            .chain(&post.links)
+            .map(|x| x.trim_end_matches('/'));
+
+        for link in links {
             if let Some(url) = urls.get(link) {
                 map.insert(url.to_string(), post.clone());
             }
         }
     }
+
+    res
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -136,13 +147,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut token: Option<String> = None;
 
-    for _ in 0..15 {
+    let mut twir_post_count = 0;
+
+    // End iterating when we have passed more than TWIR Posts
+    // (This makes it so two weeks of posts are included)
+    while twir_post_count < 3 {
+        // Call API and update token for next page
         let RedditResponse { posts, after } = call(&token)?;
-        process(&mut map, &posts, &urls);
+        token = after;
+
+        // Count number of TWIR Posts
+        if let Some(_) = process(&mut map, &posts, &urls) {
+            twir_post_count += 1;
+        }
+
+        // Print progress
         print!(" ");
         io::stdout().flush().expect("Unable to flush stdout");
-
-        token = after;
     }
 
     print_header();
