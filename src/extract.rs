@@ -11,7 +11,7 @@ fn extract_urls(document_content: &str) -> Vec<String> {
     let selector_a = Selector::parse("a").unwrap();
 
     for elem in html.select(&selector_h3) {
-        result.push(format!("##{}", elem.text().collect::<Vec<_>>().join("")).to_string());
+        result.push(format!("## {}", elem.text().collect::<Vec<_>>().join("")).to_string());
 
         let ul = elem
             .next_siblings()

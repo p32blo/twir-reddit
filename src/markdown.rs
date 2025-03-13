@@ -184,7 +184,7 @@ fn print_result(urls: &[String], map: &HashMap<String, RedditPost>) {
             section = Some(url);
         } else if let Some(post) = map.get(url) {
             if let Some(url) = section.take() {
-                println!("{}", url);
+                println!("\n{}", url);
             }
             print_post(post);
         }
