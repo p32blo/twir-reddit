@@ -1,14 +1,20 @@
-run url: (markdown url)
+run : markdown 
 
-html url: 
+data:
   mkdir -p data
+
+feed: data
+  curl --progress-bar https://this-week-in-rust.org/atom.xml > data/atom.xml
+  cargo run --release --bin feed -- data/atom.xml > data/atom-twir.html
+
+html url: data
   curl --progress-bar {{url}} --output data/twir.html
 
-extract url: (html url)
-  cargo run  --bin extract --release -- data/twir.html > data/url.txt
+extract: feed
+  cargo run --release --bin extract -- data/atom-twir.html > data/url.txt
 
-markdown url: (extract url)
-  cargo run  --bin markdown --release  -- data/url.txt
+markdown: extract
+  cargo run --release --bin markdown -- data/url.txt
 
 clean:
   rm -rf data/
