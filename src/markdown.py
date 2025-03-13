@@ -1,7 +1,6 @@
 import html
 import sys
 from dataclasses import dataclass
-from pprint import pprint
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,8 +10,6 @@ URLS = []
 
 with open(filename) as f:
     URLS = [line.strip().rstrip('/') for line in f]
-
-pprint(len(URLS))
 
 
 def urls_iterator(urls):
@@ -25,8 +22,9 @@ print(
     """
 # TWIR @ Reddit
 
-Hey everyone, here you can follow the r/rust comment threads of articles featured in TWIR (This Week in Rust). 
-I've always found it helpful to search for additional insights in the comment section here and I hope you can find it helpful too. 
+Hey everyone, here you can follow the r/rust comment threads of articles featured in TWIR (This Week in Rust).
+I've always found it helpful to search for additional insights in the comment section here
+and I hope you can find it helpful too.
 Enjoy !
 """
 )
@@ -74,7 +72,6 @@ def call(after=None):
         params['after'] = after
 
     response = requests.get(url, headers={'User-Agent': 'Rust TWIR/0.0.1'}, params=params)
-    # time.sleep(5)
     return response
 
 
@@ -102,7 +99,7 @@ for _ in range(15):
         post_content = extract_post(post)
 
         links = post_content['links'] + [post_content['url']]
-        links = (l.rstrip('/') for l in links)
+        links = (link.rstrip('/') for link in links)
 
         # print(f'{[l.rstrip("/") for l in links]=}')
         for link in links:
@@ -141,7 +138,8 @@ for url in URLS:
     elif url in RESULTS_MAP:
         result = RESULTS_MAP[url]
         BUFFER.append(
-            f"- [{result.title}]({result.url}) `↑{result.score} | {result.num_comments} comment{'s' if result.num_comments > 1 else ''}`"
+            f"- [{result.title}]({result.url})"
+            f" `↑{result.score} | {result.num_comments} comment{'s' if result.num_comments > 1 else ''}`"
         )
 
 print_buffer(BUFFER)
