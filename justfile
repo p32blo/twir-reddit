@@ -1,4 +1,4 @@
-all url: (markdown url)
+run url: (markdown url)
 
 html url: 
   mkdir -p data

@@ -1,5 +1,5 @@
 # How to Use
 
 ```bash
-just all <url>
+just run <url>
 ```
