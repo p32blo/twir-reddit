@@ -193,9 +193,6 @@ fn print_footer() {
 
 If you are curious how this comment is generated you can now check https://github.com/p32blo/twir-reddit
 
-Also, I'm looking for a Rust job opportunity!
-If you know anyone interested in a Remote Developer in Europe, you can contact me at p32blo@gmail.com.
-Thank you!
 "#,
     );
 }
