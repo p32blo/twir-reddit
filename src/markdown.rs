@@ -168,7 +168,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     print_header();
     print_result(&ordered_urls, &map);
-    print_footer();
 
     Ok(())
 }
@@ -182,20 +181,17 @@ Hey everyone, here you can follow the r/rust comment threads of articles feature
 I've always found it helpful to search for additional insights in the comment section here
 and I hope you can find it helpful too.
 Enjoy !
-"#,
-    );
-}
 
-fn print_footer() {
-    println!(
-        r#"
+-- 
+
+If you are curious how this comment is generated you can check https://github.com/p32blo/twir-reddit
+
 --
 
-If you are curious how this comment is generated you can now check https://github.com/p32blo/twir-reddit
-
 "#,
     );
 }
+
 
 fn print_result(urls: &[String], map: &HashMap<String, RedditPost>) {
     let mut section = None;
