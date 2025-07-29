@@ -6,10 +6,10 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     utils,
     naersk,
+    ...
   }:
     utils.lib.eachDefaultSystem (
       system: let
@@ -24,8 +24,7 @@
               rustc
               bacon
               rustfmt
-              pre-commit
-              rustPackages.clippy
+              clippy
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
             packages = [
