@@ -180,13 +180,12 @@ fn print_header() {
 Hey everyone, here you can follow the r/rust comment threads of articles featured in TWIR (This Week in Rust).
 I've always found it helpful to search for additional insights in the comment section here
 and I hope you can find it helpful too.
-Enjoy !
-
--- 
 
 If you are curious how this comment is generated you can check https://github.com/p32blo/twir-reddit
 
---
+Enjoy !
+
+---
 
 "#,
     );
