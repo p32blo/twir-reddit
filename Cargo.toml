@@ -20,5 +20,5 @@ path = "src/feed.rs"
 feed-rs = "2.3.1"
 html-escape = "0.2.13"
 scraper = "0.24.0"
-serde_json = "1.0.143"
+serde_json = "1.0.145"
 ureq = { version = "3.1.1", features = ["json"] }
